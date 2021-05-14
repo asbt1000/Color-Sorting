@@ -1,0 +1,52 @@
+CString PortSpecifier = "COM3";
+HANDLE hPort = CreateFile(PortSpecifier, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+bool WriteComPort(CString PortSpecifier, CString data)
+{
+    DCB dcb;
+    DWORD byteswritten;
+    /*    HANDLE hPort = CreateFile(
+
+    PortSpecifier,
+    GENERIC_WRITE,
+    0,
+    NULL,
+    OPEN_EXISTING,
+    0,
+    NULL
+    );*/
+    if (!GetCommState(hPort, &dcb))
+        return false;
+    dcb.BaudRate = CBR_9600; //9600 Baud
+    dcb.ByteSize = 8; //8 data bits
+    dcb.Parity = NOPARITY; //no parity
+    dcb.StopBits = ONESTOPBIT; //1 stop
+    if (!SetCommState(hPort, &dcb))
+        return false;
+    bool retVal = WriteFile(hPort, data, 1, &byteswritten, NULL);
+    //    CloseHandle(hPort); 
+    return retVal;
+}
+
+
+
+char output,value;
+int maximum(double area_red, double area_blue, double area_green)
+{
+    if (area_red > area_blue&&area_red > area_green)
+    {
+        output = 'r';
+        value = WriteComPort(PortSpecifier, output);
+    }
+    else if (area_blue > area_red&&area_blue > area_green)
+    {
+        output = 'b';
+        value = WriteComPort(PortSpecifier, output);
+    }
+    else if (area_green > area_red&&area_green > area_blue)
+
+    {
+        output = 'g';
+        value = WriteComPort(PortSpecifier, output);
+    }
+    return output;
+}

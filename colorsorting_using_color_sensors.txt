@@ -1,0 +1,80 @@
+#define F_CPU 8000000UL
+#include <avr/io.h>
+#include <util/delay.h>
+#include "USART_128.h"
+void InitADC()  //Initiate ADC//
+{
+	ADMUX=(1<<REFS0);                                     // For Aref=AVcc//
+	ADCSRA=(1<<ADEN)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0);    //prescalar div factor = 128//
+}
+uint16_t ReadADC(uint8_t ch)
+{
+	ch&=0x07;
+	ADMUX|=ch;
+	//Start Single conversion//
+	ADCSRA|=(1<<ADSC);
+	//Wait for conversion to complete//
+	while(!(ADCSRA&(1<<ADIF)));
+	ADCSRA|=(1<<ADIF);//clear ADIF by making it 1//
+	return(ADC);
+}
+
+
+
+void main()
+{   
+	DDRB=0b00011011;
+	uint16_t red =0 ;
+	uint16_t green=0 ;
+	uint16_t blue =0;
+      
+      USART_Init(51,0);
+	//Initialize ADC
+	InitADC();
+  PORTB = 0b00011000;//frequency modulation 
+
+	while(1)
+	{
+        	
+		PORTB = 0b00011001;   // Turn on Blue RGB
+		_delay_ms(1000);     
+		blue=ReadADC(0);      // Read Analog value and store it in blue
+        USART_Transmitchar('(',0);
+		USART_TransmitNumber(blue,0);
+        USART_Transmitchar(' ',0);
+		PORTB = 0b00011011;   //Turn on Green RGB ;
+		_delay_ms(100);      
+		green = ReadADC(0);   //Read Analog value and store it in green
+        USART_TransmitNumber(green,0);
+        USART_Transmitchar(' ',0);		
+		PORTB=0b00011000;
+		red = ReadADC(0);      //Read Analog value and store it in red
+        _delay_ms(100);       
+		USART_TransmitNumber(red,0);
+        USART_Transmitchar(')',0);
+/*      if ((red > green) && (red > blue)) 
+		  {
+			  PORTD=0x01;
+			 _delay_ms(400);
+			 
+			  
+			 }  //Red   Display
+
+		if ((green > red) && (green > blue)) 
+		{
+			PORTD=0x01;
+			 _delay_ms(400);
+			  
+			 
+			 }  //Green Display
+
+		if ((blue > green) && (blue > red))  
+		{
+			PORTD=0x01; 
+			_delay_ms(400);
+			 
+			}  //Blue  Display
+	*/		
+	}
+	
+}
